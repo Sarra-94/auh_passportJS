@@ -20,7 +20,14 @@ exports.register = async (req, res) => {
     newUser.password = hash;
     // then save the user
     await newUser.save();
-    res.status(201).json(newUser);
+    const payload = {
+      _id: newUser._id,
+      name: newUser.name,
+      email: newUser.email,
+    };
+    const token = jwt.sign(payload, "mySecretKey", { expiresIn: 10000000 });
+
+    res.status(201).json({ newUser, token: `Bearer ${token}` });
   } catch (error) {
     res.status(500).json({ message: "error server", errors: error });
   }
@@ -47,7 +54,8 @@ exports.login = async (req, res) => {
       name: searchedUser.name,
       email: searchedUser.email,
     };
-    const token = jwt.sign(payload, "mySecretKey");
+
+    const token = jwt.sign(payload, "mySecretKey", { expiresIn: 10000000 });
     // send the access to the application
     return res.status(200).json({ token: `Bearer ${token}` });
   } catch (error) {
